@@ -120,8 +120,6 @@
             e.preventDefault();
             const apiKey = document.getElementById('groqApiKey').value.trim();
             const fileInput = document.getElementById('fitsFile').files[0];
-
-            if(!apiKey) { alert("Please provide your Groq API Key in the upper right control bar."); return; }
             
             statusText.classList.remove('hidden');
             execBtn.setAttribute('disabled', true);
