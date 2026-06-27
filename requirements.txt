@@ -27,3 +27,5 @@ tqdm
 
 # Network Ingestion Utilities
 requests
+
+gunicorn
