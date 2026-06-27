@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exoplanet Portal Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+    <header class="border-b border-slate-800 bg-slate-950 p-6 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
+                    🚀 EXOPLANET INTELLIGENCE ARCHITECTURE
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">ISRO P7 Challenge Program Core Interface</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <input type="password" id="groqApiKey" placeholder="Enter Groq API Key" 
+                       class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition shadow-inner w-64">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <section class="lg:col-span-7 space-y-6">
+            
+            <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-2xl">
+                <h2 class="text-sm font-bold tracking-widest text-slate-400 uppercase mb-4">1. Data Ingestion Layer</h2>
+                <form id="uploadForm" class="flex flex-col sm:flex-row gap-4">
+                    <input type="file" id="fitsFile" accept=".fits" required
+                           class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer bg-slate-900 rounded-xl border border-slate-800 p-1">
+                    <button type="submit" id="execBtn" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 px-6 py-2 rounded-xl text-sm font-bold tracking-wide shadow-lg transition active:scale-95 whitespace-nowrap">
+                        Execute Pipeline
+                    </button>
+                </form>
+                <div id="statusIndicator" class="text-xs text-amber-400 mt-3 font-mono hidden animate-pulse">Processing metrics & optimizing geometry... Please stand by.</div>
+            </div>
+
+            <div id="dashboardSection" class="hidden space-y-6">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                        <span class="text-xs text-slate-400 block font-semibold">Target Object</span>
+                        <span id="metricTic" class="text-sm font-black text-blue-400 font-mono">-</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                        <span class="text-xs text-slate-400 block font-semibold">Sector</span>
+                        <span id="metricSector" class="text-sm font-black text-slate-200 font-mono">-</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-md border-purple-900/40">
+                        <span class="text-xs text-slate-400 block font-semibold">Classification</span>
+                        <span id="metricTopPred" class="text-xs font-bold text-purple-400 block mt-1 truncate">-</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                        <span class="text-xs text-slate-400 block font-semibold">Ratio (Rp/Rs)</span>
+                        <span id="metricRp" class="text-sm font-black text-emerald-400 font-mono">-</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center shadow-md">
+                        <span class="text-xs text-slate-400 block font-semibold">Transit Duration</span>
+                        <span id="metricDuration" class="text-sm font-black text-amber-400 font-mono">-</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-md space-y-3">
+                    <span class="text-xs uppercase font-mono text-slate-400 tracking-wider block">AI Multiclass Classification Matrix (Signal Disentanglement)</span>
+                    <div id="probMatrixContainer" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-slate-900 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-md">
+                    <span class="text-xs uppercase font-mono text-slate-400 tracking-wider block">NASA Archive Status</span>
+                    <p id="nasaStatus" class="text-sm font-bold text-slate-100 mt-0.5">-</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-md">
+                        <img id="plotLc" src="" alt="Lightcurve Plot" class="w-full h-auto rounded-lg hidden">
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-md">
+                        <img id="plotFit" src="" alt="Transit Model Plot" class="w-full h-auto rounded-lg hidden">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-5 flex flex-col bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl h-[calc(100vh-180px)] overflow-hidden">
+            <div class="bg-slate-900 p-4 border-b border-slate-800">
+                <h2 class="text-sm font-bold tracking-widest text-slate-300 uppercase">💬 Scientific Chat Context Engine</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Llama-3.3 70B Astrophysics Inference Layer</p>
+            </div>
+
+            <div id="chatThread" class="flex-1 p-4 overflow-y-auto space-y-4 text-sm font-sans bg-slate-950">
+                <div class="text-center text-slate-600 text-xs mt-12 font-mono">Upload telemetry data to activate the inference chat stream context.</div>
+            </div>
+
+            <div class="p-4 bg-slate-900 border-t border-slate-800">
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" disabled placeholder="Process a .fits file above to unlock chat..."
+                           class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button id="sendBtn" disabled onclick="submitChatMessage()" 
+                            class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 px-5 rounded-xl font-bold text-sm transition tracking-wider shadow-md">
+                        Query
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const statusText = document.getElementById('statusIndicator');
+        const chatThread = document.getElementById('chatThread');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const execBtn = document.getElementById('execBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const apiKey = document.getElementById('groqApiKey').value.trim();
+            const fileInput = document.getElementById('fitsFile').files[0];
+
+            if(!apiKey) { alert("Please provide your Groq API Key in the upper right control bar."); return; }
+            
+            statusText.classList.remove('hidden');
+            execBtn.setAttribute('disabled', true);
+            execBtn.classList.add('opacity-50');
+            
+            const formData = new FormData();
+            formData.append('file', fileInput);
+            formData.append('api_key', apiKey);
+
+            try {
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                const result = await response.json();
+
+                if(result.error) { 
+                    alert(result.error); 
+                    statusText.classList.add('hidden'); 
+                    execBtn.removeAttribute('disabled');
+                    execBtn.classList.remove('opacity-50');
+                    return; 
+                }
+
+                document.getElementById('metricTic').innerText = "TIC " + result.tic_id;
+                document.getElementById('metricSector').innerText = result.sector;
+                document.getElementById('metricTopPred').innerText = result.top_pred;
+                document.getElementById('metricRp').innerText = result.fit_params.rp;
+                document.getElementById('metricDuration').innerText = result.fit_params.duration;
+                document.getElementById('nasaStatus').innerText = result.nasa;
+
+                const matrixContainer = document.getElementById('probMatrixContainer');
+                matrixContainer.innerHTML = '';
+                result.prob_matrix.forEach(item => {
+                    const pct = (item.confidence * 100).toFixed(1);
+                    matrixContainer.innerHTML += `
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-mono">
+                                <span class="text-slate-300 font-medium">${item.label}</span>
+                                <span class="text-blue-400 font-bold">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 shadow-inner">
+                                <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('plotLc').src = "data:image/png;base64," + result.plot_lc;
+                document.getElementById('plotLc').classList.remove('hidden');
+                document.getElementById('plotFit').src = "data:image/png;base64," + result.plot_fit;
+                document.getElementById('plotFit').classList.remove('hidden');
+
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                statusText.classList.add('hidden');
+                execBtn.removeAttribute('disabled');
+                execBtn.classList.remove('opacity-50');
+
+                chatInput.removeAttribute('disabled');
+                chatInput.placeholder = `Inquire about parameters of TIC ${result.tic_id}...`;
+                sendBtn.removeAttribute('disabled');
+
+                chatThread.innerHTML = `<div class="bg-blue-950/40 border border-blue-900/50 text-blue-300 p-3 rounded-xl text-xs font-mono text-center">Telemetry locked. Analysis Pipeline online via Groq Cluster.</div>`;
+
+            } catch (err) {
+                alert("Critical network response processing failure.");
+                statusText.classList.add('hidden');
+                execBtn.removeAttribute('disabled');
+                execBtn.classList.remove('opacity-50');
+            }
+        });
+
+        async function submitChatMessage() {
+            const msg = chatInput.value.trim();
+            if(!msg) return;
+
+            chatThread.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white px-4 py-2.5 rounded-2xl max-w-md shadow-md">${msg}</div></div>`;
+            chatInput.value = "";
+            chatThread.scrollTop = chatThread.scrollHeight;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const result = await response.json();
+
+                if(result.error) {
+                    chatThread.innerHTML += `<div class="flex justify-start"><div class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-2.5 rounded-2xl max-w-md">⚠️ ${result.error}</div></div>`;
+                } else {
+                    chatThread.innerHTML += `<div class="flex justify-start"><div class="bg-slate-900 border border-slate-800 text-slate-200 px-4 py-2.5 rounded-2xl max-w-xl shadow-inner leading-relaxed whitespace-pre-line">${result.reply}</div></div>`;
+                }
+                chatThread.scrollTop = chatThread.scrollHeight;
+            } catch(e) {
+                alert("Asynchronous chat session stream interrupted.");
+            }
+        }
+
+        chatInput.addEventListener("keypress", (e) => { if (e.key === "Enter") { submitChatMessage(); } });
+    </script>
+</body>
+</html>
